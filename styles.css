@@ -257,6 +257,7 @@ nav {
     -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
     mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
     cursor: grab;
+    user-select: none;
 }
 
 .marquee-track {
@@ -264,16 +265,7 @@ nav {
     gap: 20px;
     width: max-content;
     padding: 12px 0 20px;
-    animation: marquee 28s linear infinite;
-}
-
-.marquee-wrap:hover .marquee-track {
-    animation-play-state: paused;
-}
-
-@keyframes marquee {
-    0%   { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    will-change: transform;
 }
 
 .project-card {
