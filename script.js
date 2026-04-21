@@ -35,6 +35,123 @@ function handleSubmit(e) {
     window.location.href = `mailto:kojaandrew0@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`
 }
 
+// Project carousel auto-scroll with manual override
+;(function () {
+    const wrap = document.querySelector('.marquee-wrap')
+    const track = document.querySelector('.marquee-track')
+    if (!wrap || !track) return
+
+    let isPaused = false
+    let isDragging = false
+    let dragStartX = 0
+    let startOffset = 0
+    let offset = 0
+    let resumeTimer
+
+    function getLoopWidth() {
+        return track.scrollWidth / 2
+    }
+
+    function normalizeOffset() {
+        const loopWidth = getLoopWidth()
+        if (!loopWidth) return
+
+        while (offset <= -loopWidth) {
+            offset += loopWidth
+        }
+
+        while (offset > 0) {
+            offset -= loopWidth
+        }
+    }
+
+    function render() {
+        track.style.transform = `translate3d(${offset}px, 0, 0)`
+    }
+
+    function pauseAutoScroll() {
+        isPaused = true
+        clearTimeout(resumeTimer)
+    }
+
+    function resumeAutoScroll(delay = 0) {
+        clearTimeout(resumeTimer)
+        resumeTimer = window.setTimeout(() => {
+            isPaused = false
+        }, delay)
+    }
+
+    function autoScroll() {
+        if (!isPaused && !isDragging) {
+            offset -= 1.8
+            normalizeOffset()
+            render()
+        }
+        requestAnimationFrame(autoScroll)
+    }
+
+    function pointerX(event) {
+        return event.touches ? event.touches[0].clientX : event.clientX
+    }
+
+    wrap.addEventListener('wheel', () => {
+        pauseAutoScroll()
+        resumeAutoScroll()
+    }, { passive: true })
+
+    wrap.addEventListener('wheel', event => {
+        offset -= event.deltaY + event.deltaX
+        normalizeOffset()
+        render()
+    }, { passive: true })
+
+    wrap.addEventListener('mousedown', event => {
+        isDragging = true
+        pauseAutoScroll()
+        dragStartX = pointerX(event)
+        startOffset = offset
+        wrap.style.cursor = 'grabbing'
+    })
+
+    window.addEventListener('mousemove', event => {
+        if (!isDragging) return
+        const delta = pointerX(event) - dragStartX
+        offset = startOffset + delta
+        normalizeOffset()
+        render()
+    })
+
+    window.addEventListener('mouseup', () => {
+        if (!isDragging) return
+        isDragging = false
+        wrap.style.cursor = 'grab'
+        resumeAutoScroll()
+    })
+
+    wrap.addEventListener('touchstart', event => {
+        isDragging = true
+        pauseAutoScroll()
+        dragStartX = pointerX(event)
+        startOffset = offset
+    }, { passive: true })
+
+    wrap.addEventListener('touchmove', event => {
+        if (!isDragging) return
+        const delta = pointerX(event) - dragStartX
+        offset = startOffset + delta
+        normalizeOffset()
+        render()
+    }, { passive: true })
+
+    wrap.addEventListener('touchend', () => {
+        isDragging = false
+        resumeAutoScroll()
+    })
+
+    render()
+    autoScroll()
+})()
+
 // 3D perspective star field — stars fly toward viewer and off screen
 ;(function () {
     const canvas = document.getElementById('hero-canvas')
